@@ -29,7 +29,7 @@ uiStroke.Color = Color3.fromHex("770000")
 
 -- --- INTERFACE DE CONTROLE ---
 local sg = Instance.new("ScreenGui", player.PlayerGui)
-sg.Name = "olz_combat_hub"
+sg.Name = "olz_aimbot_hub"
 sg.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", sg)
@@ -70,14 +70,14 @@ aimBtn.TextColor3 = Color3.new(1, 1, 1)
 local espBtn = Instance.new("TextButton", container)
 espBtn.Size = UDim2.new(0.9, 0, 0, 30)
 espBtn.Position = UDim2.new(0.05, 0, 0.20, 0)
-espBtn.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+espBtn.BackgroundColor3 = Color3.fromHex("770000")
 espBtn.Text = "esp: off"
 espBtn.TextColor3 = Color3.new(1, 1, 1)
 
 local fovVisibleBtn = Instance.new("TextButton", container)
 fovVisibleBtn.Size = UDim2.new(0.9, 0, 0, 30)
 fovVisibleBtn.Position = UDim2.new(0.05, 0, 0.35, 0)
-fovVisibleBtn.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+fovVisibleBtn.BackgroundColor3 = Color3.fromHex("770000")
 fovVisibleBtn.Text = "ver fov: on"
 fovVisibleBtn.TextColor3 = Color3.new(1, 1, 1)
 
@@ -128,7 +128,7 @@ end)
 
 fovVisibleBtn.MouseButton1Click:Connect(function()
 	showFov = not showFov
-	fovVisibleBtn.Text = showFov and "ver fov: on" or "ver fov: off"
+	fovVisibleBtn.Text = showFov and "fov: on" or "fov: off"
 	fovCircle.Visible = aimEnabled and showFov
 end)
 
@@ -166,7 +166,7 @@ local function getTarget()
 end
 
 runService.RenderStepped:Connect(function()
-	title.TextColor3 = Color3.fromHSV(tick() % 3 / 3, 1, 1) -- RGB
+	title.TextColor3 = Color3.fromHSV(tick() % 3 / 3, 1, 1)
 	
 	if aimEnabled then
 		local target = getTarget()
