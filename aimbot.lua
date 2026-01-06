@@ -17,7 +17,7 @@ local fovCircle = Instance.new("Frame", fovGui)
 fovCircle.Size = UDim2.new(0, fovSize * 2, 0, fovSize * 2)
 fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
 fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
-fovCircle.BackgroundColor3 = Color3.fromHex("770000")
+fovCircle.BackgroundColor3 = Color3.new("0.1, 0.1, 0.1")
 fovCircle.BackgroundTransparency = 0.9
 fovCircle.Visible = false
 
