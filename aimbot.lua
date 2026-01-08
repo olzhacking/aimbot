@@ -21,7 +21,7 @@ local fovCircle = Instance.new("Frame", fovGui)
 fovCircle.Size = UDim2.new(0, fovSize * 2, 0, fovSize * 2)
 fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
 fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
-fovCircle.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Cor base escura
+fovCircle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 fovCircle.BackgroundTransparency = 0.9
 fovCircle.Visible = false
 
@@ -29,7 +29,7 @@ local uiCorner = Instance.new("UICorner", fovCircle)
 uiCorner.CornerRadius = UDim.new(1, 0)
 local uiStroke = Instance.new("UIStroke", fovCircle)
 uiStroke.Thickness = 1
-uiStroke.Color = Color3.fromHex("770000") -- Borda Vermelha
+uiStroke.Color = Color3.fromHex("770000")
 
 -- --- INTERFACE DE CONTROLE ---
 local sg = Instance.new("ScreenGui", player.PlayerGui)
@@ -43,7 +43,6 @@ frame.BackgroundColor3 = Color3.new(0, 0, 0)
 frame.BorderSizePixel = 2
 frame.BorderColor3 = Color3.fromHex("770000")
 frame.Active = true
-frame.Draggable = true
 
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(0.6, 0, 0, 30)
@@ -53,24 +52,20 @@ title.Font = Enum.Font.Code
 title.TextSize = 16
 title.TextColor3 = Color3.new(1, 1, 1)
 
--- Botão de Fechar (X)
 local closeBtn = Instance.new("TextButton", frame)
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
 closeBtn.BackgroundColor3 = Color3.fromHex("770000")
 closeBtn.Text = "X"
 closeBtn.TextColor3 = Color3.new(1, 1, 1)
-closeBtn.BorderSizePixel = 0
-closeBtn.MouseButton1Click:Connect(function() sg:Destroy() end) -- Adicionado sistema de fechar
+closeBtn.MouseButton1Click:Connect(function() sg:Destroy(); fovGui:Destroy() end)
 
--- Botão de Minimizar (-)
 local minBtn = Instance.new("TextButton", frame)
 minBtn.Size = UDim2.new(0, 30, 0, 30)
-minBtn.Position = UDim2.new(1, -60, 0, 0) -- Reposicionado para não sobrepor o X
+minBtn.Position = UDim2.new(1, -60, 0, 0)
 minBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 minBtn.Text = "-"
 minBtn.TextColor3 = Color3.new(1, 1, 1)
-minBtn.BorderSizePixel = 0
 
 local container = Instance.new("Frame", frame)
 container.Size = UDim2.new(1, 0, 1, -30)
@@ -119,10 +114,10 @@ subFov.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 subFov.Text = "fov -"
 subFov.TextColor3 = Color3.new(1, 1, 1)
 
--- --- LÓGICA DE BOTÕES ---
+-- --- LÓGICA ---
 minBtn.MouseButton1Click:Connect(function()
 	minimized = not minimized
-	frame:TweenSize(minimized and UDim2.new(0, 180, 0, 30) or UDim2.new(0, 180, 0, 260))
+	frame:TweenSize(minimized and UDim2.new(0, 180, 0, 30) or UDim2.new(0, 180, 0, 260), "Out", "Quad", 0.3, true)
 	container.Visible = not minimized
 	minBtn.Text = minimized and "+" or "-"
 end)
@@ -130,7 +125,6 @@ end)
 aimBtn.MouseButton1Click:Connect(function()
 	aimEnabled = not aimEnabled
 	aimBtn.Text = aimEnabled and "aimbot: on" or "aimbot: off"
-    -- Cor de Ativação: #770000 para ON
 	aimBtn.BackgroundColor3 = aimEnabled and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
 	fovCircle.Visible = aimEnabled and showFov
 end)
@@ -138,7 +132,6 @@ end)
 espBtn.MouseButton1Click:Connect(function()
 	espEnabled = not espEnabled
 	espBtn.Text = espEnabled and "esp: on" or "esp: off"
-    -- Cor de Ativação: #770000 para ON
     espBtn.BackgroundColor3 = espEnabled and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
 	if not espEnabled then
 		for _, v in pairs(game.Players:GetPlayers()) do
@@ -150,73 +143,22 @@ end)
 fovVisibleBtn.MouseButton1Click:Connect(function()
 	showFov = not showFov
 	fovVisibleBtn.Text = showFov and "ver fov: on" or "ver fov: off"
-    -- Cor de Ativação: #770000 para ON
     fovVisibleBtn.BackgroundColor3 = showFov and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
 	fovCircle.Visible = aimEnabled and showFov
 end)
 
 addFov.MouseButton1Click:Connect(function()
-    addFov.BackgroundColor3 = Color3.fromHex("770000")
 	fovSize = fovSize + 10
 	fovLabel.Text = "fov size: " .. fovSize
 	fovCircle.Size = UDim2.new(0, fovSize * 2, 0, fovSize * 2)
-    task.wait(0.1)
-    addFov.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 end)
 
 subFov.MouseButton1Click:Connect(function()
-    subFov.BackgroundColor3 = Color3.fromHex("770000")
 	fovSize = math.max(10, fovSize - 10)
 	fovLabel.Text = "fov size: " .. fovSize
 	fovCircle.Size = UDim2.new(0, fovSize * 2, 0, fovSize * 2)
-    task.wait(0.1)
-    subFov.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 end)
 
--- --- CÁLCULO DE ALVO E RENDER ---
-local function getTarget()
-	local target = nil
-	local dist = math.huge
-	local center = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
-
-	for _, v in pairs(game.Players:GetPlayers()) do
-		if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
-			local pos, vis = camera:WorldToViewportPoint(v.Character.Head.Position)
-			if vis then
-				local magnitude = (Vector2.new(pos.X, pos.Y) - center).Magnitude
-				if magnitude <= fovSize and magnitude < dist then
-					target = v.Character.Head
-					dist = magnitude
-				end
-			end
-		end
-	end
-	return target
-end
-
-runService.RenderStepped:Connect(function()
-	title.TextColor3 = Color3.fromHSV(tick() % 3 / 3, 1, 1) -- RGB
-	
-	if aimEnabled then
-		local target = getTarget()
-		if target then
-			camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position, target.Position), 0.15)
-		end
-	end
-
-	if espEnabled then
-		for _, v in pairs(game.Players:GetPlayers()) do
-			if v ~= player and v.Character and not v.Character:FindFirstChild("olz_esp") then
-				local h = Instance.new("Highlight", v.Character)
-				h.Name = "olz_esp"
-				h.FillColor = Color3.fromHex("770000")
-				h.FillTransparency = 0.5
-			end
-		end
-	end
-end)end)
-
--- --- CÁLCULO DE ALVO E RENDER ---
 local function getTarget()
 	local target = nil
 	local dist = math.huge
