@@ -1,11 +1,12 @@
 --[[
     Aimbot/ESP Hub: olz
-    Cores: #770000 (Geral e ON/OFF)
+    Funcionalidades: Arrastável, Aimbot, ESP, FOV Ajustável
 ]]
 
 local player = game.Players.LocalPlayer
 local camera = workspace.CurrentCamera
 local runService = game:GetService("RunService")
+local userInputService = game:GetService("UserInputService")
 
 local aimEnabled = false
 local espEnabled = false
@@ -38,12 +39,42 @@ sg.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", sg)
 frame.Size = UDim2.new(0, 180, 0, 260)
-frame.Position = UDim2.new(0.8, 0, 0.2, 0)
+frame.Position = UDim2.new(0.5, -90, 0.4, -130) -- Centralizado inicialmente
 frame.BackgroundColor3 = Color3.new(0, 0, 0)
 frame.BorderSizePixel = 2
 frame.BorderColor3 = Color3.fromHex("770000")
 frame.Active = true
 
+-- LÓGICA PARA MOVER O MENU (DRAGGABLE)
+local dragging, dragInput, dragStart, startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+userInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then update(input) end
+end)
+
+-- --- COMPONENTES ---
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(0.6, 0, 0, 30)
 title.BackgroundTransparency = 1
@@ -114,34 +145,93 @@ subFov.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 subFov.Text = "fov -"
 subFov.TextColor3 = Color3.new(1, 1, 1)
 
--- --- LÓGICA ---
+-- --- EVENTOS DOS BOTÕES ---
 minBtn.MouseButton1Click:Connect(function()
-	minimized = not minimized
-	frame:TweenSize(minimized and UDim2.new(0, 180, 0, 30) or UDim2.new(0, 180, 0, 260), "Out", "Quad", 0.3, true)
-	container.Visible = not minimized
-	minBtn.Text = minimized and "+" or "-"
+    minimized = not minimized
+    frame:TweenSize(minimized and UDim2.new(0, 180, 0, 30) or UDim2.new(0, 180, 0, 260), "Out", "Quad", 0.2, true)
+    container.Visible = not minimized
+    minBtn.Text = minimized and "+" or "-"
 end)
 
 aimBtn.MouseButton1Click:Connect(function()
-	aimEnabled = not aimEnabled
-	aimBtn.Text = aimEnabled and "aimbot: on" or "aimbot: off"
-	aimBtn.BackgroundColor3 = aimEnabled and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
-	fovCircle.Visible = aimEnabled and showFov
+    aimEnabled = not aimEnabled
+    aimBtn.Text = aimEnabled and "aimbot: on" or "aimbot: off"
+    aimBtn.BackgroundColor3 = aimEnabled and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
+    fovCircle.Visible = aimEnabled and showFov
 end)
 
 espBtn.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	espBtn.Text = espEnabled and "esp: on" or "esp: off"
+    espEnabled = not espEnabled
+    espBtn.Text = espEnabled and "esp: on" or "esp: off"
     espBtn.BackgroundColor3 = espEnabled and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
-	if not espEnabled then
-		for _, v in pairs(game.Players:GetPlayers()) do
-			if v.Character and v.Character:FindFirstChild("olz_esp") then v.Character.olz_esp:Destroy() end
-		end
-	end
+    if not espEnabled then
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v.Character and v.Character:FindFirstChild("olz_esp") then v.Character.olz_esp:Destroy() end
+        end
+    end
 end)
 
 fovVisibleBtn.MouseButton1Click:Connect(function()
-	showFov = not showFov
+    showFov = not showFov
+    fovVisibleBtn.Text = showFov and "ver fov: on" or "ver fov: off"
+    fovVisibleBtn.BackgroundColor3 = showFov and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
+    fovCircle.Visible = aimEnabled and showFov
+end)
+
+addFov.MouseButton1Click:Connect(function()
+    fovSize = fovSize + 10
+    fovLabel.Text = "fov size: " .. fovSize
+    fovCircle.Size = UDim2.new(0, fovSize * 2, 0, fovSize * 2)
+end)
+
+subFov.MouseButton1Click:Connect(function()
+    fovSize = math.max(10, fovSize - 10)
+    fovLabel.Text = "fov size: " .. fovSize
+    fovCircle.Size = UDim2.new(0, fovSize * 2, 0, fovSize * 2)
+end)
+
+-- --- LÓGICA DE ALVO E RENDER ---
+local function getTarget()
+    local target = nil
+    local dist = math.huge
+    local center = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
+
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+            local pos, vis = camera:WorldToViewportPoint(v.Character.Head.Position)
+            if vis then
+                local magnitude = (Vector2.new(pos.X, pos.Y) - center).Magnitude
+                if magnitude <= fovSize and magnitude < dist then
+                    target = v.Character.Head
+                    dist = magnitude
+                end
+            end
+        end
+    end
+    return target
+end
+
+runService.RenderStepped:Connect(function()
+    title.TextColor3 = Color3.fromHSV(tick() % 3 / 3, 1, 1)
+    
+    if aimEnabled then
+        local target = getTarget()
+        if target then
+            camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position, target.Position), 0.15)
+        end
+    end
+
+    if espEnabled then
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v ~= player and v.Character and not v.Character:FindFirstChild("olz_esp") then
+                local h = Instance.new("Highlight", v.Character)
+                h.Name = "olz_esp"
+                h.FillColor = Color3.fromHex("770000")
+                h.FillTransparency = 0.5
+            end
+        end
+    end
+end)
 	fovVisibleBtn.Text = showFov and "ver fov: on" or "ver fov: off"
     fovVisibleBtn.BackgroundColor3 = showFov and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
 	fovCircle.Visible = aimEnabled and showFov
