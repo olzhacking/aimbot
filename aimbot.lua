@@ -150,22 +150,19 @@ aimBtn.MouseButton1Click:Connect(function()
     aimBtn.Text = aimEnabled and "aimbot: on" or "aimbot: off"
     aimBtn.BackgroundColor3 = aimEnabled and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
     fovCircle.Visible = aimEnabled and showFov
-    if not aimEnabled then
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v.Character and not espEnabled then manageNick(v.Character, false) end
-        end
-    end
 end)
 
 espBtn.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
     espBtn.Text = espEnabled and "esp: on" or "esp: off"
     espBtn.BackgroundColor3 = espEnabled and Color3.fromHex("770000") or Color3.fromRGB(30, 30, 30)
+    
     if not espEnabled then
         for _, v in pairs(game.Players:GetPlayers()) do
             if v.Character then
                 if v.Character:FindFirstChild("olz_esp") then v.Character.olz_esp:Destroy() end
-                if not aimEnabled then manageNick(v.Character, false) end
+                -- Remove o nome se o aimbot também não estiver focando nele
+                manageNick(v.Character, false)
             end
         end
     end
@@ -201,6 +198,7 @@ runService.RenderStepped:Connect(function()
             local mag = (Vector2.new(pos.X, pos.Y) - center).Magnitude
             
             -- Lógica do Nick: Ativa se (Aimbot on + no FOV) OU se (ESP on)
+            -- Quando desativar o ESP, ele só mostrará o nome se o Aimbot estiver mirando
             local showNick = (aimEnabled and vis and mag <= fovSize) or espEnabled
             manageNick(v.Character, showNick)
 
@@ -208,9 +206,11 @@ runService.RenderStepped:Connect(function()
                 closest = v.Character.Head; dist = mag
             end
 
-            if espEnabled and not v.Character:FindFirstChild("olz_esp") then
-                local h = Instance.new("Highlight", v.Character)
-                h.Name = "olz_esp"; h.FillColor = Color3.fromHex("770000"); h.FillTransparency = 0.5
+            if espEnabled then
+                if not v.Character:FindFirstChild("olz_esp") then
+                    local h = Instance.new("Highlight", v.Character)
+                    h.Name = "olz_esp"; h.FillColor = Color3.fromHex("770000"); h.FillTransparency = 0.5
+                end
             end
         end
     end
